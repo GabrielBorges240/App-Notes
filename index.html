@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aplicativo de Notas</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+   @keyframes bgMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 8px rgba(255,255,255,0.2), 0 0 15px rgba(255,255,255,0.1);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255,255,255,0.4), 0 0 25px rgba(255,255,255,0.2);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(255,255,255,0.2), 0 0 15px rgba(255,255,255,0.1);
+  }
+}
+
+/* ---------- Tema Escuro Único ---------- */
+body {
+  background: linear-gradient(135deg, #1a1a1a, #2b2b2b, #3b3b3b, #1f1f1f);
+  background-size: 300% 300%;
+  animation: bgMove 8s ease infinite;
+  color: #ffffff;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.5s, color 0.5s;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+nav {
+  background: rgba(0,0,0,0.4);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+main.container {
+  padding: 2rem 1rem;
+}
+
+/* ---------- FORMULÁRIO ---------- */
+.note-form {
+  margin-bottom: 2rem;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 15px;
+  padding: 1.5rem;
+  color: #ffffff;
+  animation: pulseGlow 3s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+.note-form:hover {
+  box-shadow: 0 0 25px rgba(255,255,255,0.3);
+}
+
+/* ---------- TITULOS “Minhas Notas” e “Adicionar Nova Nota” ---------- */
+h2 {
+  color: #ffffff;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255,255,255,0.6);
+  animation: titleGlow 3s infinite ease-in-out;
+}
+
+@keyframes titleGlow {
+  0%, 100% { text-shadow: 0 0 5px rgba(255,255,255,0.3), 0 0 10px rgba(255,255,255,0.1); }
+  50% { text-shadow: 0 0 15px rgba(255,255,255,0.6), 0 0 30px rgba(255,255,255,0.4); }
+}
+
+/* ---------- CARDS DE NOTAS ---------- */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.note {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 15px;
+  padding: 1rem;
+  color: #ffffff;
+  animation: pulseGlow 3s infinite ease-in-out;
+  transition: transform 0.2s;
+}
+
+.note:hover {
+  transform: scale(1.03);
+}
+
+/* --- Botão X minimalista e sem borda azul --- */
+ .delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+  outline: none;           /* 🔹 remove o contorno azul ao clicar */
+}
+
+.delete-btn:focus {
+  outline: none;           /* 🔹 garante que mesmo o foco via teclado não mostre borda */
+  box-shadow: none;
+}
+
+.delete-btn:hover {
+  color: #ff0000;
+  transform: none;
+  background: none;
+}
+
+
+/* ---------- CAMPOS E BOTÕES ---------- */
+/* --- Estilo base dos botões --- */
+button,
+input[type="submit"] {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 6px rgba(255,255,255,0.15);
+}
+
+/* --- Efeito Neon Suave no Hover --- */
+button:hover,
+input[type="submit"]:hover {
+  background-color: #1a1a1a;         /* mantém o fundo escuro */
+  color: #ffffff;                    /* mantém branco */
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 
+    0 0 5px rgba(255,255,255,0.4),
+    0 0 10px rgba(255,255,255,0.5),
+    0 0 20px rgba(255,255,255,0.6);
+  animation: neonPulse 1.5s infinite alternate ease-in-out;
+}
+
+/* --- Animação suave do brilho --- */
+@keyframes neonPulse {
+  0% {
+    box-shadow:
+      0 0 6px rgba(255,255,255,0.3),
+      0 0 12px rgba(255,255,255,0.2),
+      0 0 20px rgba(255,255,255,0.1);
+  }
+  100% {
+    box-shadow:
+      0 0 10px rgba(255,255,255,0.6),
+      0 0 20px rgba(255,255,255,0.5),
+      0 0 30px rgba(255,255,255,0.4);
+  }
+}
+
+textarea, input[type="text"], input[type="search"], input[type="email"] {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0.5rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+textarea:focus, input:focus {
+  outline: none;
+  border-color: #c9b79c;
+  background: rgba(50, 50, 50, 0.9);
+  box-shadow: 0 0 10px rgba(201,183,156,0.4);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ---------- RODAPÉ ---------- */
+.footer {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  text-align: center;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  margin-top: 2rem;
+}
+
+.footer .signature {
+  margin: 0;
+  font-size: 1rem;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+
+    button, input[type="submit"] {
+      background-color: #1a1a1a;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #ffffff;
+      color: #1a1a1a;
+    }
+
+    textarea, input[type="text"], input[type="search"], input[type="email"] {
+      background: rgba(30, 30, 30, 0.8);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 0.5rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #c9b79c;
+      background: rgba(50, 50, 50, 0.9);
+      box-shadow: 0 0 10px rgba(201,183,156,0.4);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+  /* --- Rodapé ao final da página --- */
+.footer {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  text-align: center;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  margin-top: 2rem; /* Espaço entre conteúdo e rodapé */
+}
+
+.footer .signature {
+  margin: 0;
+  font-size: 1rem;
+  color: #ffffff; /* Nome branco */
+  font-weight: 500;
+}
+/* --- Botão de pin (alfinete) totalmente branco via mask --- */
+/* --- Ícone de pin branco fixo acima do card --- */
+.pin-btn {
+  position: absolute;
+  top: -15px; /* fica um pouco fora do card */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  background-color: #ffffff; /* branco puro */
+  -webkit-mask: url('./pin/pin\ \(1\).png') no-repeat center;
+  mask: url('./pin/pin\ \(1\).png') no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  opacity: 0.95;
+  transition: box-shadow 0.3s ease;
+}
+
+.pin-btn:hover {
+  box-shadow: 0 0 8px rgba(255,255,255,0.8);
+  opacity: 1;
+}
+
+/* --- Ícone de lápis branco nos títulos e textos editáveis --- */
+
+/* Aplica o ícone de lápis ao lado do título da nota */
+.note h3[contenteditable="true"] {
+  position: relative;
+  padding-right: 28px; /* espaço para o ícone */
+}
+
+.note h3[contenteditable="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #ffffff; /* branco */
+  -webkit-mask: url('./pin/lapis.png') no-repeat center;
+  mask: url('./pin/lapis.png') no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* O ícone brilha e aumenta ao focar o título */
+.note h3[contenteditable="true"]:hover::after,
+.note h3[contenteditable="true"]:focus::after {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* --- Ícone também para o conteúdo editável --- */
+.note p[contenteditable="true"] {
+  position: relative;
+  padding-right: 26px;
+}
+
+.note p[contenteditable="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  -webkit-mask: url('./pin/lapis.png') no-repeat center;
+  mask: url('./pin/lapis.png') no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: 0.5;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.note p[contenteditable="true"]:hover::after,
+.note p[contenteditable="true"]:focus::after {
+  opacity: 1;
+  transform: scale(1.2);
+}
+/* ---------- Modal de Confirmação de Exclusão ---------- */
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none; /* escondido por padrão */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.confirm-box {
+  background: rgba(20, 20, 20, 0.5);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 15px;
+  padding: 2rem;
+  color: #fff;
+  text-align: center;
+  width: 300px;
+  animation: pulseGlow 3s infinite ease-in-out;
+  box-shadow: 0 0 15px rgba(255,255,255,0.3);
+}
+
+.confirm-box p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.confirm-actions button {
+  background-color: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-actions button:hover {
+  background-color: #fff;
+  color: #1a1a1a;
+  box-shadow: 0 0 10px rgba(255,255,255,0.6);
+}
+/* --- Ícone de lupa branca dentro do campo de busca --- */
+#searchInput {
+  background: rgba(30, 30, 30, 0.8)
+    url('./pin/procurar.png') no-repeat 12px center; /* caminho da sua lupa */
+  background-size: 18px;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0.5rem 0.5rem 0.5rem 40px; /* espaço para o ícone */
+  transition: all 0.3s ease;
+}
+
+#searchInput::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+#searchInput:focus {
+  border-color: #c9b79c;
+  background-color: rgba(50, 50, 50, 0.9);
+  box-shadow: 0 0 10px rgba(201,183,156,0.4);
+}
+/* --- Ícone de lápis da linha "Categoria" igual aos outros e colado na borda direita --- */
+.note small {
+  position: relative;
+  display: block; /* para ocupar a largura total do card */
+  padding-right: 28px; /* espaço interno p/ o ícone não sobrepor texto */
+}
+
+/* Ícone do lápis igual aos demais (lapis.png) */
+.note small::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 6px; /* encosta na borda como os outros dois */
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-color: #ffffff;
+  -webkit-mask: url('./pin/lapis.png') no-repeat center;
+  mask: url('./pin/lapis.png') no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none; /* evita interferência na edição de texto */
+}
+
+/* Mesmo brilho e aumento no hover/focus */
+.note small:hover::after,
+.note small:focus-within::after {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.2);
+}
+/* ---------- 🔹 RESPONSIVIDADE GERAL ---------- */
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  main.container {
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+  }
+
+  .note-form {
+    padding: 1rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #searchInput {
+    width: 100%;
+  }
+
+  .notes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .note {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .note h3 {
+    font-size: 1rem;
+  }
+
+  .note p {
+    font-size: 0.9rem;
+  }
+
+  .note small {
+    font-size: 0.8rem;
+  }
+
+  .pin-btn {
+    width: 22px;
+    height: 22px;
+    top: -12px;
+  }
+
+  button, input[type="submit"] {
+    width: 100%;
+  }
+
+  .footer {
+    padding: 0.8rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ---------- 🔹 Responsivo para telas muito pequenas (celulares menores que 480px) ---------- */
+@media (max-width: 480px) {
+  body {
+    font-size: 0.9rem;
+  }
+
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .note {
+    padding: 0.7rem;
+  }
+
+  .note-form h2,
+  section h2 {
+    font-size: 1rem;
+  }
+
+  .toolbar {
+    gap: 0.5rem;
+  }
+
+  .note h3 {
+    font-size: 0.95rem;
+  }
+
+  .note p {
+    font-size: 0.85rem;
+  }
+
+  #searchInput {
+    background-size: 16px;
+    padding-left: 35px;
+  }
+
+  .pin-btn {
+    width: 20px;
+    height: 20px;
+    top: -10px;
+  }
+
+  .note small::after {
+    width: 16px;
+    height: 16px;
+    right: 4px;
+  }
+}
+/* 🔹 Aproxima o campo de categoria do conteúdo da nota */
+#content {
+  margin-bottom: 0.6rem; /* reduz o espaço abaixo do campo de conteúdo */
+}
+
+#category {
+  margin-top: 0; /* elimina o espaço extra acima do campo de categoria */
+}
+
+/* ---------- CABEÇALHO COM BRILHO LEVE ---------- */
+nav {
+  background: rgba(0,0,0,0.4);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(255,255,255,0.08), 0 0 25px rgba(255,255,255,0.05);
+  animation: navGlow 6s infinite ease-in-out;
+}
+
+@keyframes navGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255,255,255,0.08), 0 0 20px rgba(255,255,255,0.05);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 0 35px rgba(255,255,255,0.08);
+  }
+}
+
+/* ---------- RODAPÉ COM BRILHO LEVE ---------- */
+.footer {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  text-align: center;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  margin-top: 2rem;
+  box-shadow: 0 0 15px rgba(255,255,255,0.08), 0 0 25px rgba(255,255,255,0.05);
+  animation: footerGlow 6s infinite ease-in-out;
+}
+
+@keyframes footerGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255,255,255,0.08), 0 0 20px rgba(255,255,255,0.05);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 0 35px rgba(255,255,255,0.08);
+  }
+}
+
+.footer .signature {
+  margin: 0;
+  font-size: 1rem;
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+/* ---------- TÍTULO "Notas App" BRANCO COM BRILHO LEVE ---------- */
+nav ul li strong {
+  color: #ffffff; /* branco puro */
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.6),
+               0 0 12px rgba(255, 255, 255, 0.3);
+  letter-spacing: 1px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  transition: text-shadow 0.3s ease;
+}
+
+nav ul li strong:hover {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+               0 0 20px rgba(255, 255, 255, 0.5);
+}
+/* 🔹 Aproxima os cards da barra de pesquisa */
+.toolbar {
+  margin-bottom: 0.1rem; /* antes estava 1rem — reduzido */
+}
+
+.note-form {
+  margin-top: 0.1rem; /* reduz o espaço acima do formulário */
+  margin-bottom: 0.1rem; /* mantém leve respiro abaixo */
+}
+
+section {
+  margin-top: 0.1rem; /* aproxima a seção "Minhas Notas" dos cards */
+}
+main.container {
+  padding-top: 1rem; /* aproxima do cabeçalho, mas sem colar */
+}
+
+
+
+  </style>
+</head>
+<body>
+
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>Notas App</strong></li>
+    </ul>
+    <ul>
+      <li><button id="exportNotes"> Exportar</button></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="  Buscar notas...">
+    </div>
+
+    <div class="note-form">
+      <h2>Adicionar Nova Nota</h2>
+      <form id="noteForm">
+        <input type="text" id="title" placeholder="Título da nota" required>
+        <textarea id="content" rows="4" placeholder="Conteúdo da nota" required></textarea>
+        <input type="text" id="category" placeholder="Categoria (ex: Trabalho, Pessoal)" />
+        <button type="submit">Adicionar Nota</button>
+      </form>
+    </div>
+
+    <section>
+      <h2>Minhas Notas</h2>
+      <div class="notes-grid" id="notesContainer"></div>
+    </section>
+  </main>
+
+<footer class="footer">
+  <div class="footer-content">
+    <p class="signature">© Gabriel Borges. Todos os direitos reservados. • 2025</p>
+  </div>
+</footer>
+
+<!-- Modal de confirmação de exclusão -->
+<div id="confirmModal" class="confirm-modal">
+  <div class="confirm-box">
+    <p>Deseja realmente excluir esta nota?</p>
+    <div class="confirm-actions">
+      <button id="confirmYes">Sim</button>
+      <button id="confirmNo">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+  <script>
+    const noteForm = document.getElementById('noteForm');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const categoryInput = document.getElementById('category');
+    const notesContainer = document.getElementById('notesContainer');
+    const searchInput = document.getElementById('searchInput');
+    const exportBtn = document.getElementById('exportNotes');
+
+    let notes = JSON.parse(localStorage.getItem('notesApp')) || [];
+
+    function saveNotes() {
+      localStorage.setItem('notesApp', JSON.stringify(notes));
+    }
+
+    function renderNotes(filter = '') {
+      notesContainer.innerHTML = '';
+      const filtered = notes.filter(note => 
+        note.title.toLowerCase().includes(filter.toLowerCase()) ||
+        note.content.toLowerCase().includes(filter.toLowerCase()) ||
+        note.category.toLowerCase().includes(filter.toLowerCase())
+      );
+
+      filtered.forEach((note, index) => {
+        const noteElement = document.createElement('div');
+        noteElement.classList.add('note');
+        noteElement.innerHTML = `
+          <div class="note-header">
+            <h3 contenteditable="true" onblur="updateTitle(${index}, this.innerText)">${note.title}</h3>
+            <button class="pin-btn" onclick="deleteNote(${index})"></button>
+
+          </div>
+          <p contenteditable="true" onblur="updateContent(${index}, this.innerText)">${note.content}</p>
+          <small><strong>Categoria:</strong> <span contenteditable="true" onblur="updateCategory(${index}, this.innerText)">${note.category}</span></small>
+          <div class="note-date">${note.date}</div>
+        `;
+        notesContainer.appendChild(noteElement);
+      });
+    }
+
+    function addNote() {
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const category = categoryInput.value.trim() || 'Sem categoria';
+      if (title && content) {
+        const newNote = {
+          title,
+          content,
+          category,
+          date: new Date().toLocaleString('pt-BR')
+        };
+        notes.push(newNote);
+        saveNotes();
+        renderNotes();
+        noteForm.reset();
+      }
+    }
+
+    function updateTitle(index, newTitle) { notes[index].title = newTitle; saveNotes(); }
+    function updateContent(index, newContent) { notes[index].content = newContent; saveNotes(); }
+    function updateCategory(index, newCategory) { notes[index].category = newCategory; saveNotes(); }
+
+    function deleteNote(index) {
+  const modal = document.getElementById('confirmModal');
+  const yesBtn = document.getElementById('confirmYes');
+  const noBtn = document.getElementById('confirmNo');
+
+  modal.style.display = 'flex'; // mostra o modal
+
+  yesBtn.onclick = () => {
+    notes.splice(index, 1);
+    saveNotes();
+    renderNotes();
+    modal.style.display = 'none';
+  };
+
+  noBtn.onclick = () => {
+    modal.style.display = 'none';
+  };
+}
+
+
+    searchInput.addEventListener('input', e => renderNotes(e.target.value));
+
+    exportBtn.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'notas.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    noteForm.addEventListener('submit', e => {
+      e.preventDefault();
+      addNote();
+    });
+
+    renderNotes();
+  </script>
+</body>
+</html>
